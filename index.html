@@ -1,0 +1,1092 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0a0a0a">
+<title>ADIM SAYAR</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --surface: #111111;
+    --card: #181818;
+    --border: #2a2a2a;
+    --accent: #c8f53e;
+    --accent2: #3effa0;
+    --red: #ff4757;
+    --text: #f0f0f0;
+    --muted: #666;
+    --dim: #333;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  /* Animated background grid */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: 
+      linear-gradient(rgba(200,245,62,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(200,245,62,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    width: 100%;
+    max-width: 420px;
+    padding: 20px 16px 40px;
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  /* Header */
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 0 4px;
+  }
+
+  .logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    letter-spacing: 4px;
+    color: var(--accent);
+    text-shadow: 0 0 20px rgba(200,245,62,0.4);
+  }
+
+  .wake-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-family: 'DM Mono', monospace;
+    color: var(--muted);
+    background: var(--card);
+    border: 1px solid var(--border);
+    padding: 5px 10px;
+    border-radius: 20px;
+    transition: all 0.3s;
+  }
+
+  .wake-badge.active {
+    color: var(--accent2);
+    border-color: rgba(62,255,160,0.3);
+    background: rgba(62,255,160,0.05);
+  }
+
+  .wake-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--muted);
+    transition: all 0.3s;
+  }
+
+  .wake-badge.active .wake-dot {
+    background: var(--accent2);
+    box-shadow: 0 0 8px var(--accent2);
+    animation: pulse-dot 2s infinite;
+  }
+
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  /* Main step display */
+  .step-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 32px 24px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .step-card::after {
+    content: '';
+    position: absolute;
+    top: -40px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 200px;
+    height: 200px;
+    background: radial-gradient(circle, rgba(200,245,62,0.08) 0%, transparent 70%);
+    pointer-events: none;
+    transition: opacity 0.3s;
+  }
+
+  .step-card.active::after {
+    opacity: 1;
+    animation: glow-pulse 1s ease-out;
+  }
+
+  @keyframes glow-pulse {
+    0% { transform: translateX(-50%) scale(0.8); opacity: 0; }
+    50% { opacity: 1; }
+    100% { transform: translateX(-50%) scale(1.2); opacity: 0.6; }
+  }
+
+  .step-label {
+    font-size: 11px;
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 3px;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  .step-number {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(80px, 25vw, 120px);
+    line-height: 1;
+    color: var(--accent);
+    text-shadow: 0 0 40px rgba(200,245,62,0.3);
+    transition: transform 0.1s ease;
+    display: block;
+  }
+
+  .step-number.bump {
+    animation: bump 0.15s ease-out;
+  }
+
+  @keyframes bump {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.08); }
+    100% { transform: scale(1); }
+  }
+
+  .step-unit {
+    font-size: 13px;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 2px;
+    margin-top: 4px;
+  }
+
+  /* Progress ring */
+  .progress-wrap {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+  }
+
+  .progress-ring-container {
+    position: relative;
+    width: 80px;
+    height: 80px;
+  }
+
+  .progress-ring-container svg {
+    transform: rotate(-90deg);
+  }
+
+  .ring-track {
+    fill: none;
+    stroke: var(--dim);
+    stroke-width: 4;
+  }
+
+  .ring-progress {
+    fill: none;
+    stroke: var(--accent);
+    stroke-width: 4;
+    stroke-linecap: round;
+    stroke-dasharray: 220;
+    stroke-dashoffset: 220;
+    transition: stroke-dashoffset 0.4s ease;
+    filter: drop-shadow(0 0 4px rgba(200,245,62,0.5));
+  }
+
+  .ring-center {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .ring-pct {
+    font-family: 'DM Mono', monospace;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--accent);
+  }
+
+  .ring-goal-label {
+    font-size: 8px;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 1px;
+  }
+
+  /* Stats grid */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .stat-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .stat-icon {
+    font-size: 18px;
+    margin-bottom: 4px;
+  }
+
+  .stat-value {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    color: var(--text);
+    line-height: 1;
+  }
+
+  .stat-value span {
+    font-size: 14px;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+  }
+
+  .stat-label {
+    font-size: 10px;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+  }
+
+  /* Sensor bar */
+  .sensor-bar {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .sensor-icon-wrap {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: rgba(200,245,62,0.08);
+    border: 1px solid rgba(200,245,62,0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+
+  .sensor-info { flex: 1; }
+
+  .sensor-name {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 2px;
+  }
+
+  .sensor-status {
+    font-size: 10px;
+    font-family: 'DM Mono', monospace;
+    color: var(--muted);
+  }
+
+  .sensor-status.ok { color: var(--accent2); }
+  .sensor-status.err { color: var(--red); }
+  .sensor-status.warn { color: #ffd060; }
+
+  /* Accel viz */
+  .accel-viz {
+    width: 40px;
+    height: 24px;
+    flex-shrink: 0;
+  }
+
+  .accel-bar {
+    display: flex;
+    gap: 2px;
+    align-items: flex-end;
+    height: 100%;
+  }
+
+  .accel-bar-item {
+    width: 6px;
+    background: var(--accent);
+    border-radius: 2px;
+    opacity: 0.4;
+    transition: height 0.1s ease, opacity 0.1s;
+  }
+
+  /* Controls */
+  .controls {
+    display: flex;
+    gap: 10px;
+  }
+
+  .btn {
+    flex: 1;
+    padding: 16px;
+    border: none;
+    border-radius: 16px;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    letter-spacing: 0.5px;
+  }
+
+  .btn:active { transform: scale(0.96); }
+
+  .btn-start {
+    background: var(--accent);
+    color: #0a0a0a;
+    font-size: 16px;
+  }
+
+  .btn-start:hover { background: #d4ff45; box-shadow: 0 0 20px rgba(200,245,62,0.3); }
+
+  .btn-stop {
+    background: rgba(255,71,87,0.12);
+    color: var(--red);
+    border: 1px solid rgba(255,71,87,0.25);
+  }
+
+  .btn-stop:hover { background: rgba(255,71,87,0.2); }
+
+  .btn-reset {
+    background: var(--card);
+    color: var(--muted);
+    border: 1px solid var(--border);
+    flex: 0;
+    padding: 16px 20px;
+  }
+
+  /* Goal setter */
+  .goal-row {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .goal-label {
+    font-size: 12px;
+    font-family: 'DM Mono', monospace;
+    color: var(--muted);
+    letter-spacing: 1px;
+    white-space: nowrap;
+  }
+
+  .goal-btns {
+    display: flex;
+    gap: 6px;
+    flex: 1;
+    justify-content: flex-end;
+  }
+
+  .goal-chip {
+    padding: 6px 12px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    font-size: 11px;
+    font-family: 'DM Mono', monospace;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .goal-chip:hover, .goal-chip.active {
+    background: rgba(200,245,62,0.1);
+    border-color: rgba(200,245,62,0.4);
+    color: var(--accent);
+  }
+
+  /* Timeline */
+  .timeline-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 16px;
+  }
+
+  .section-title {
+    font-size: 10px;
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 2px;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  .chart-wrap {
+    display: flex;
+    align-items: flex-end;
+    gap: 3px;
+    height: 48px;
+  }
+
+  .chart-bar {
+    flex: 1;
+    background: var(--dim);
+    border-radius: 3px 3px 0 0;
+    transition: height 0.3s ease, background 0.3s;
+    min-height: 2px;
+  }
+
+  .chart-bar.highlight {
+    background: var(--accent);
+  }
+
+  /* Permission overlay */
+  .overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(10,10,10,0.95);
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    backdrop-filter: blur(8px);
+  }
+
+  .overlay.hidden { display: none; }
+
+  .overlay-box {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 32px 24px;
+    max-width: 340px;
+    width: 100%;
+    text-align: center;
+  }
+
+  .overlay-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+    display: block;
+  }
+
+  .overlay-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    letter-spacing: 3px;
+    color: var(--accent);
+    margin-bottom: 8px;
+  }
+
+  .overlay-desc {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.6;
+    margin-bottom: 24px;
+  }
+
+  .btn-permit {
+    width: 100%;
+    padding: 16px;
+    background: var(--accent);
+    color: #0a0a0a;
+    border: none;
+    border-radius: 14px;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    cursor: pointer;
+  }
+
+  .btn-skip {
+    width: 100%;
+    padding: 12px;
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    border-radius: 14px;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    margin-top: 8px;
+  }
+
+  /* Step flash */
+  @keyframes flash-border {
+    0% { border-color: var(--accent); box-shadow: 0 0 20px rgba(200,245,62,0.4); }
+    100% { border-color: var(--border); box-shadow: none; }
+  }
+
+  .step-card.flash {
+    animation: flash-border 0.3s ease-out;
+  }
+
+  /* Status indicator */
+  .status-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--dim);
+  }
+
+  .status-dot.running {
+    background: var(--accent2);
+    box-shadow: 0 0 10px var(--accent2);
+    animation: pulse-dot 1.5s infinite;
+  }
+
+  .status-dot.stopped {
+    background: var(--red);
+  }
+
+  .status-text {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 1px;
+  }
+
+  /* Milestone toast */
+  .toast {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-80px);
+    background: var(--accent);
+    color: #0a0a0a;
+    padding: 10px 20px;
+    border-radius: 40px;
+    font-weight: 700;
+    font-size: 13px;
+    z-index: 200;
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    white-space: nowrap;
+  }
+
+  .toast.show {
+    transform: translateX(-50%) translateY(0);
+  }
+</style>
+</head>
+<body>
+
+<!-- Permission overlay -->
+<div class="overlay" id="overlay">
+  <div class="overlay-box">
+    <span class="overlay-icon">🚶</span>
+    <div class="overlay-title">ADIM SAYAR</div>
+    <div class="overlay-desc">
+      Adımlarını sayabilmek için <strong>hareket sensörüne</strong> erişim gerekiyor.<br><br>
+      iOS'ta "İzin Ver" tuşuna bas. Android'de otomatik başlar.
+    </div>
+    <button class="btn-permit" onclick="requestPermission()">📱 İzin Ver</button>
+    <button class="btn-skip" onclick="startWithoutSensor()">Sensör olmadan dene (Manuel)</button>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast">🎉 Harika!</div>
+
+<div class="container">
+  <!-- Header -->
+  <div class="header">
+    <div class="logo">ADIM SAYAR</div>
+    <div class="wake-badge" id="wakeBadge">
+      <div class="wake-dot"></div>
+      <span id="wakeText">UYKU KAPALI</span>
+    </div>
+  </div>
+
+  <!-- Main step display -->
+  <div class="step-card" id="stepCard">
+    <div class="step-label">TOPLAM ADIM</div>
+    <span class="step-number" id="stepCount">0</span>
+    <div class="step-unit">ADIM</div>
+
+    <div class="progress-wrap">
+      <div class="progress-ring-container">
+        <svg width="80" height="80" viewBox="0 0 80 80">
+          <circle class="ring-track" cx="40" cy="40" r="35"/>
+          <circle class="ring-progress" id="ringProgress" cx="40" cy="40" r="35"/>
+        </svg>
+        <div class="ring-center">
+          <div class="ring-pct" id="ringPct">0%</div>
+          <div class="ring-goal-label">HEDEF</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats grid -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon">📍</div>
+      <div class="stat-value" id="distVal">0.00 <span>km</span></div>
+      <div class="stat-label">MESAFe</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">🔥</div>
+      <div class="stat-value" id="calVal">0 <span>kcal</span></div>
+      <div class="stat-label">KALORİ</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">⏱️</div>
+      <div class="stat-value" id="timeVal">00:00</div>
+      <div class="stat-label">SÜRE</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">⚡</div>
+      <div class="stat-value" id="cadVal">0 <span>adm/dk</span></div>
+      <div class="stat-label">KADANS</div>
+    </div>
+  </div>
+
+  <!-- Sensor bar -->
+  <div class="sensor-bar">
+    <div class="sensor-icon-wrap">📡</div>
+    <div class="sensor-info">
+      <div class="sensor-name">Hareket Sensörü</div>
+      <div class="sensor-status" id="sensorStatus">Bekleniyor...</div>
+    </div>
+    <div class="accel-viz">
+      <div class="accel-bar">
+        <div class="accel-bar-item" id="b1" style="height:4px"></div>
+        <div class="accel-bar-item" id="b2" style="height:4px"></div>
+        <div class="accel-bar-item" id="b3" style="height:4px"></div>
+        <div class="accel-bar-item" id="b4" style="height:4px"></div>
+        <div class="accel-bar-item" id="b5" style="height:4px"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Goal row -->
+  <div class="goal-row">
+    <div class="goal-label">🎯 HEDEF</div>
+    <div class="goal-btns">
+      <div class="goal-chip active" onclick="setGoal(5000, this)">5K</div>
+      <div class="goal-chip" onclick="setGoal(8000, this)">8K</div>
+      <div class="goal-chip" onclick="setGoal(10000, this)">10K</div>
+      <div class="goal-chip" onclick="setGoal(15000, this)">15K</div>
+    </div>
+  </div>
+
+  <!-- Status + Controls -->
+  <div class="status-row">
+    <div class="status-dot" id="statusDot"></div>
+    <div class="status-text" id="statusText">HAZIR</div>
+  </div>
+
+  <div class="controls">
+    <button class="btn btn-start" id="startBtn" onclick="toggleTracking()">▶ BAŞLA</button>
+    <button class="btn btn-reset" onclick="resetAll()">↺</button>
+  </div>
+
+  <!-- Timeline chart -->
+  <div class="timeline-card">
+    <div class="section-title">SON 20 SANIYE — ADIM YOĞUNLUĞU</div>
+    <div class="chart-wrap" id="chartWrap"></div>
+  </div>
+</div>
+
+<script>
+// ==================== STATE ====================
+let steps = 0;
+let isRunning = false;
+let wakeLock = null;
+let startTime = null;
+let timerInterval = null;
+let goal = 5000;
+let recentSteps = new Array(20).fill(0);
+let cadenceWindow = [];
+let accelHistory = [];
+
+// ==================== STEP DETECTION ====================
+// Gerçek yürüyüş adımı = 1 tam salınım ~400-800ms sürer
+// Titreşim/sarsıntı = çok kısa süreli, düşük amplitüd
+// Çözüm: MIN_STEP_MS yüksek tut + hem yukarı hem aşağı fazı iste
+
+const MIN_STEP_MS = 400;   // max ~2.5 adım/sn — gerçekçi yürüyüş limiti
+const ABS_MIN_MAG = 3.5;   // mutlak minimum — bunun altındaki her şey titreşim/gürültü
+let lastStepTime = 0;
+
+// Gravity için güçlü low-pass (yavaş değişen = gravity)
+const LP = 0.85;
+let gx = 0, gy = 0, gz = 0;
+
+// Adım fazı takibi: önce YUKARI gitmeli (pozitif peak), sonra AŞAĞI (negatif trough)
+// Bu sayede tek bir sarsıntı = adım sayılmaz; tam bir adım hareketi gerekir
+let phase = 'idle';   // 'idle' | 'up' | 'down'
+let peakVal = 0;
+let troughVal = 0;
+const PEAK_MIN  = 3.5;   // linear acc magnitude peak eşiği
+const TROUGH_MIN = 2.0;  // trough eşiği (aşağı faz onayı)
+
+function processMag(rawX, rawY, rawZ) {
+  // Gravity tahmin et (low-pass)
+  gx = LP * gx + (1 - LP) * rawX;
+  gy = LP * gy + (1 - LP) * rawY;
+  gz = LP * gz + (1 - LP) * rawZ;
+
+  // Linear ivme (gravity çıkarıldı)
+  const lx = rawX - gx;
+  const ly = rawY - gy;
+  const lz = rawZ - gz;
+  const mag = Math.sqrt(lx*lx + ly*ly + lz*lz);
+
+  if (!isRunning) return mag;
+
+  const now = Date.now();
+
+  // Faz makinesi
+  if (phase === 'idle' || phase === 'down') {
+    // Yeterince güçlü bir YUKARI hareket bekliyoruz
+    if (mag > PEAK_MIN) {
+      phase = 'up';
+      peakVal = mag;
+    }
+  } else if (phase === 'up') {
+    if (mag > peakVal) {
+      peakVal = mag; // zirveyi güncelle
+    } else if (peakVal - mag > TROUGH_MIN) {
+      // Zirve geçildi, şimdi düşüyor = tam adım hareketi tamamlandı
+      if (now - lastStepTime > MIN_STEP_MS) {
+        lastStepTime = now;
+        addStep();
+        cadenceWindow.push(now);
+        if (cadenceWindow.length > 30) cadenceWindow.shift();
+      }
+      phase = 'down';
+      peakVal = 0;
+    }
+    // Eğer mag tekrar yükselirse sıfırla (sahte peak)
+    if (mag < 0.5 && phase === 'up') phase = 'idle';
+  }
+
+  return mag;
+}
+
+// ==================== SENSOR INIT ====================
+function initSensor() {
+  if (!window.DeviceMotionEvent) {
+    setStatus('err', 'Sensör bulunamadı — Manuel mod');
+    enableManual();
+    return;
+  }
+
+  window.addEventListener('devicemotion', onMotion, { passive: true });
+  setStatus('ok', 'Sensör aktif ✓ — Başla tuşuna bas');
+}
+
+let sensorFired = false;
+function onMotion(e) {
+  const a = e.accelerationIncludingGravity || e.acceleration;
+  if (!a) return;
+
+  const x = a.x || 0;
+  const y = a.y || 0;
+  const z = a.z || 0;
+
+  if (!sensorFired) {
+    sensorFired = true;
+    setStatus('ok', 'Sensör aktif ✓ — Başla tuşuna bas');
+  }
+
+  const mag = processMag(x, y, z);
+
+  // Viz bars — linear mag göster
+  accelHistory.push(mag);
+  if (accelHistory.length > 5) accelHistory.shift();
+  updateAccelViz();
+}
+
+function updateAccelViz() {
+  const max = Math.max(...accelHistory, 1);
+  ['b1','b2','b3','b4','b5'].forEach((id, i) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const v = accelHistory[i] || 0;
+    const h = Math.max(2, Math.min(24, (v / max) * 24));
+    el.style.height = h + 'px';
+    el.style.opacity = isRunning ? '1' : '0.4';
+  });
+}
+
+// ==================== MANUAL FALLBACK ====================
+function enableManual() {
+  document.getElementById('stepCard').style.cursor = 'pointer';
+  document.getElementById('stepCard').addEventListener('click', () => {
+    if (isRunning) addStep();
+  });
+}
+
+// ==================== PERMISSION ====================
+async function requestPermission() {
+  if (typeof DeviceMotionEvent !== 'undefined' &&
+      typeof DeviceMotionEvent.requestPermission === 'function') {
+    try {
+      const r = await DeviceMotionEvent.requestPermission();
+      if (r === 'granted') {
+        document.getElementById('overlay').classList.add('hidden');
+        initSensor();
+      } else {
+        alert('Sensör izni reddedildi. Tarayıcı ayarlarından izin verin.');
+      }
+    } catch(e) {
+      document.getElementById('overlay').classList.add('hidden');
+      initSensor();
+    }
+  } else {
+    document.getElementById('overlay').classList.add('hidden');
+    initSensor();
+  }
+}
+
+function startWithoutSensor() {
+  document.getElementById('overlay').classList.add('hidden');
+  setStatus('warn', 'Manuel mod — karta dokun');
+  enableManual();
+  initSensor(); // still try
+}
+
+// ==================== INIT ====================
+window.addEventListener('load', () => {
+  buildChart();
+  acquireWakeLock();
+
+  if (typeof DeviceMotionEvent !== 'undefined' &&
+      typeof DeviceMotionEvent.requestPermission === 'function') {
+    // iOS 13+ — need explicit permission
+    document.getElementById('overlay').classList.remove('hidden');
+  } else {
+    document.getElementById('overlay').classList.add('hidden');
+    initSensor();
+  }
+});
+
+// ==================== STEP COUNT ====================
+function addStep() {
+  steps++;
+  recentSteps[recentSteps.length - 1]++;
+  updateUI();
+  flashCard();
+  checkMilestone(steps);
+}
+
+function updateUI() {
+  const el = document.getElementById('stepCount');
+  el.textContent = steps.toLocaleString('tr-TR');
+  el.classList.remove('bump');
+  void el.offsetWidth;
+  el.classList.add('bump');
+
+  const dist = (steps * 0.75) / 1000;
+  document.getElementById('distVal').innerHTML = dist.toFixed(2) + ' <span>km</span>';
+  document.getElementById('calVal').innerHTML = Math.round(steps * 0.04) + ' <span>kcal</span>';
+
+  const pct = Math.min(steps / goal, 1);
+  document.getElementById('ringProgress').style.strokeDashoffset = 220 - pct * 220;
+  document.getElementById('ringPct').textContent = Math.round(pct * 100) + '%';
+}
+
+function flashCard() {
+  const c = document.getElementById('stepCard');
+  c.classList.remove('flash','active');
+  void c.offsetWidth;
+  c.classList.add('flash','active');
+}
+
+// ==================== TRACKING ====================
+function toggleTracking() {
+  isRunning ? stopTracking() : startTracking();
+}
+
+function startTracking() {
+  isRunning = true;
+  if (!startTime) startTime = Date.now();
+
+  document.getElementById('startBtn').textContent = '⏸ DURDUR';
+  document.getElementById('startBtn').className = 'btn btn-stop';
+  document.getElementById('statusDot').className = 'status-dot running';
+  document.getElementById('statusText').textContent = 'SAYIYOR...';
+
+  timerInterval = setInterval(updateTimer, 1000);
+  acquireWakeLock();
+}
+
+function stopTracking() {
+  isRunning = false;
+  document.getElementById('startBtn').textContent = '▶ DEVAM';
+  document.getElementById('startBtn').className = 'btn btn-start';
+  document.getElementById('statusDot').className = 'status-dot stopped';
+  document.getElementById('statusText').textContent = 'DURAKLATILDI';
+  clearInterval(timerInterval);
+}
+
+function resetAll() {
+  isRunning = false;
+  steps = 0;
+  startTime = null;
+  recentSteps = new Array(20).fill(0);
+  cadenceWindow = [];
+  gx = 0; gy = 0; gz = 0;
+  phase = 'idle';
+  peakVal = 0;
+  clearInterval(timerInterval);
+
+  document.getElementById('startBtn').textContent = '▶ BAŞLA';
+  document.getElementById('startBtn').className = 'btn btn-start';
+  document.getElementById('statusDot').className = 'status-dot';
+  document.getElementById('statusText').textContent = 'HAZIR';
+  document.getElementById('stepCount').textContent = '0';
+  document.getElementById('distVal').innerHTML = '0.00 <span>km</span>';
+  document.getElementById('calVal').innerHTML = '0 <span>kcal</span>';
+  document.getElementById('timeVal').textContent = '00:00';
+  document.getElementById('cadVal').innerHTML = '0 <span>adm/dk</span>';
+  document.getElementById('ringProgress').style.strokeDashoffset = 220;
+  document.getElementById('ringPct').textContent = '0%';
+  lastMilestone = 0;
+  buildChart();
+}
+
+// ==================== TIMER ====================
+function updateTimer() {
+  if (!startTime) return;
+  const elapsed = Math.floor((Date.now() - startTime) / 1000);
+  const m = String(Math.floor(elapsed / 60)).padStart(2,'0');
+  const s = String(elapsed % 60).padStart(2,'0');
+  document.getElementById('timeVal').textContent = m + ':' + s;
+
+  const now = Date.now();
+  const recent = cadenceWindow.filter(t => now - t < 60000);
+  cadenceWindow = recent;
+  document.getElementById('cadVal').innerHTML = recent.length + ' <span>adm/dk</span>';
+}
+
+// ==================== CHART ====================
+function buildChart() {
+  const wrap = document.getElementById('chartWrap');
+  wrap.innerHTML = '';
+  for (let i = 0; i < 20; i++) {
+    const bar = document.createElement('div');
+    bar.className = 'chart-bar';
+    bar.id = 'cbar' + i;
+    bar.style.height = '2px';
+    wrap.appendChild(bar);
+  }
+}
+
+setInterval(() => {
+  recentSteps.shift();
+  recentSteps.push(0);
+  const max = Math.max(...recentSteps, 1);
+  recentSteps.forEach((v, i) => {
+    const b = document.getElementById('cbar' + i);
+    if (!b) return;
+    b.style.height = Math.max(2, Math.round((v / max) * 44)) + 'px';
+    b.classList.toggle('highlight', i === 19);
+  });
+}, 1000);
+
+// ==================== GOAL ====================
+function setGoal(val, el) {
+  goal = val;
+  document.querySelectorAll('.goal-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  updateUI();
+}
+
+// ==================== WAKE LOCK ====================
+async function acquireWakeLock() {
+  if (!('wakeLock' in navigator)) return;
+  try {
+    wakeLock = await navigator.wakeLock.request('screen');
+    document.getElementById('wakeBadge').classList.add('active');
+    document.getElementById('wakeText').textContent = 'UYKU KAPALI';
+    wakeLock.addEventListener('release', () => {
+      document.getElementById('wakeBadge').classList.remove('active');
+      document.getElementById('wakeText').textContent = 'UYKU AÇIK';
+    });
+  } catch(e) {}
+}
+
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') acquireWakeLock();
+});
+
+// ==================== MILESTONES ====================
+const milestones = [100, 500, 1000, 2000, 5000, 8000, 10000, 15000];
+let lastMilestone = 0;
+
+function checkMilestone(s) {
+  for (const m of milestones) {
+    if (s >= m && lastMilestone < m) {
+      lastMilestone = m;
+      showToast('🎉 ' + m.toLocaleString('tr-TR') + ' adım!');
+      return;
+    }
+  }
+  if (s >= goal && lastMilestone < goal + 1) {
+    lastMilestone = goal + 1;
+    showToast('🏆 HEDEF TAMAMLANDI!');
+  }
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+function setStatus(type, msg) {
+  const el = document.getElementById('sensorStatus');
+  el.textContent = msg;
+  el.className = 'sensor-status ' + type;
+}
+</script>
+</body>
+</html>
